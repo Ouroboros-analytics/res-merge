@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<head>
+
+    <title>GeoJSON + Flask + MongoDB</title>
+    <meta charset="utf-8">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+
+
+<style>
+.column {
+float:left;
+padding: 10px;
+height: 1000px;
+}
+.row:after {
+content: "";
+display: table;
+clear: both;
+}
+</style>
+
+<!--Borrowed from https://belmoussaoui.com/2019/06/28/display-geojson-data-using-flask-and-mongodb/
+and https://leafletjs.com/examples/layers-control/
+-->
+</head>
+<body>
+<div class="row">
+<div id="database" class="column" style="width:40%;"><p>THIS AREA WILL BE USED TO SELECT ENTRIES IN THE DATABASE</p></div>
+<div id="union" class="column" style="width:15%;background-color:#ccc;">THIS AREA WILL BE USED TO JOIN SELECTED DATABASE ENTRIES TO SELECTED MAP FEATURES</div>
+<div id="map" class="column" style="width:40%;"></div>
+</div>
+<script>
+
+
+let map = L.map('map').setView([29.75645476127096,-95.38217628419495], 16)
+var osm_basemap = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: 'OSM'
+}).addTo(map);
+
+var blocklayer = L.geoJSON({{blocks|safe}},{
+style: {color:'#ff0000',fillColor: '#ff0000'},
+
+onEachFeature: function (feature, layer) {
+var props = feature.properties
+layer.bindPopup('<h3>'+props.MapTextual+'</h3><p>'+props.FirstObser+'-'+props.LastObserv+'</p><p>Block ID: '+props.Id+'</p><p>Branden\'s Notes: '+ props.Notes +'</p>');
+
+},
+
+})
+
+var lotslayer = L.geoJSON({{lots|safe}},{
+onEachFeature: function (feature, layer) {
+var props = feature.properties
+layer.bindPopup('<h3>'+props.MapTextual+'</h3><p>'+props.FirstObser+'-'+props.LastObserv+'</p><p>Branden\'s Notes: '+ props.Notes +'</p>');
+}
+
+
+})
+
+
+var overlayMaps = {
+"<span style='color:blue'>Lots</span>":lotslayer,
+"<span style='color:red'>Blocks</span>":blocklayer,
+};
+
+
+L.control.layers(null,overlayMaps).addTo(map)
+
+
+</script>
+</body>
+
+</html>
